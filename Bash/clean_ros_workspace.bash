@@ -17,12 +17,12 @@ fi
 
 # Function to safely find, excluding .git directories
 safe_find() {
-    find "$root_dir" -path "$root_dir/.git" -prune -o "$@"
+    find "$root_dir" \( -type d -name ".git" \) -prune -o "$@" -print
 }
 
 # Delete build, devel, and logs directories
 echo "Searching for directories named build, devel, or logs..."
-safe_find -type d \( -name "build" -o -name "devel" -o -name "logs" \) -print | while read -r dir; do
+safe_find -type d \( -name "build" -o -name "devel" -o -name "logs" \) | while read -r dir; do
     echo "Found directory: $dir"
     if ! $dry_run; then
         rm -rf "$dir"
@@ -32,7 +32,7 @@ done
 
 # Delete .catkin_workspace files
 echo "Searching for .catkin_workspace files..."
-safe_find -type f -name ".catkin_workspace" -print | while read -r file; do
+safe_find -type f -name ".catkin_workspace" | while read -r file; do
     echo "Found file: $file"
     if ! $dry_run; then
         rm -f "$file"
@@ -42,7 +42,7 @@ done
 
 # Delete symbolic link CMakeLists.txt
 echo "Searching for symbolic links named CMakeLists.txt..."
-safe_find -type l -name "CMakeLists.txt" -print | while read -r link; do
+safe_find -type l -name "CMakeLists.txt" | while read -r link; do
     echo "Found symbolic link: $link"
     if ! $dry_run; then
         rm -f "$link"
