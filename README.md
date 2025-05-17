@@ -1,27 +1,56 @@
 # Scripts
 
-## clean_ros_workspace.sh
+## Bash
+
+### clean_ros_workspace.bash
 
 Clean ros workspace files, including **build**, **devel**, **logs** and **CMakeLists.txt** for symbolic link.
 
-### How to use
-
-Clean current path
+#### Clean current path
 ```bash
 ./clean_ros_workspace.bash
 ```
 
-Clean path which you want
+#### Clean path which you want
 ```bash
 ./clean_ros_workspace.bash path/you/want/clean
 ```
 
+#### Display the files that will be deleted
+
 Using the `-n` parameter, you can display the content to be cleaned without performing the actual cleaning operation.
 
 ```bash
-./clean_ros_workspace.bash -n 
+./clean_ros_workspace.bash -n
 ./clean_ros_workspace.bash -n path/you/want/clean
 ```
+
+### tar_with_progress.bash
+
+Compress and decompress to show progress by using the tar tool.
+
+Need to install `pv`.
+
+```bash
+apt update
+apt install pv
+```
+
+#### Usage
+
+Compile
+
+```bash
+./tar_with_progress.bash c file.tar.{xz|gz|bz2} file1 file2 folder1 folder2
+```
+
+Decompress
+
+```bash
+./tar_with_progress.bash x file.tar.{xz|gz|bz2}
+```
+
+Or you can use `./tar_with_progress.bash` without any parameters to show the usage.
 
 # install_ros_noetic.sh
 
