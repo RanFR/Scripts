@@ -28,6 +28,7 @@ format_bytes() {
 # ----------------------
 detect_compression() {
   case "$1" in
+    *.tar) echo "none" ;;
     *.tar.xz) echo "xz" ;;
     *.tar.gz) echo "gz" ;;
     *.tar.bz2) echo "bz2" ;;
@@ -69,6 +70,9 @@ create_archive() {
   echo "⚙️  Compression: $COMP_TYPE"
 
   case "$COMP_TYPE" in
+    none)
+      tar -cf - "${INPUTS[@]}" | pv -s "$TOTAL_SIZE" > "$OUTPUT_FILE"
+      ;;
     xz)
       tar -cf - "${INPUTS[@]}" | pv -s "$TOTAL_SIZE" | xz -c > "$OUTPUT_FILE"
       ;;
@@ -110,6 +114,12 @@ extract_archive() {
   mkdir -p "$DEST"
 
   case "$COMP_TYPE" in
+    none)
+      UNCOMPRESSED_SIZE=$(du -sb "$ARCHIVE" | awk '{print $1}')
+      HUMAN_UNCOMPRESSED=$(format_bytes "$UNCOMPRESSED_SIZE")
+      echo "📏 Estimated size: $UNCOMPRESSED_SIZE bytes ($HUMAN_UNCOMPRESSED)"
+      pv -s "$UNCOMPRESSED_SIZE" "$ARCHIVE" | tar -x -C "$DEST"
+      ;;
     xz)
       UNCOMPRESSED_SIZE=$(xz --robot --list "$ARCHIVE" | awk -F'\t' '/^totals/ {print $5}')
       HUMAN_UNCOMPRESSED=$(format_bytes "$UNCOMPRESSED_SIZE")
@@ -140,8 +150,8 @@ extract_archive() {
 # ----------------------
 usage() {
   echo "Usage:"
-  echo "  $0 -c <output.tar.{xz,gz,bz2}> <files...>        # Create archive"
-  echo "  $0 -x <archive.tar.{xz,gz,bz2}> [output_dir]     # Extract archive"
+  echo "  $0 -c <output.tar{.xz,gz,bz2}> <files...>        # Create archive"
+  echo "  $0 -x <archive.tar{.xz,gz,bz2}> [output_dir]     # Extract archive"
   exit 1
 }
 
