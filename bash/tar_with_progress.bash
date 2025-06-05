@@ -59,7 +59,7 @@ create_archive() {
 
   TOTAL_SIZE=0
   for item in "${INPUTS[@]}"; do
-    SIZE=$(du -sb "$item" | awk '{total += $1} END {print total}')
+    SIZE=$(du -sb "$item" | awk '{total += $1} END {printf "%d", total}')
     TOTAL_SIZE=$((TOTAL_SIZE + SIZE))
   done
 
