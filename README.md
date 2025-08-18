@@ -23,3 +23,7 @@ Merge every compile_commands.json in each package into a single compile_commands
 ### [extract_clash_domains.py](docs/python/extract_clash_domains.md)
 
 将指定文件夹下所有 log 文件中提取的网址，整理为 Clash 规则（DOMAIN-SUFFIX 优先，IP/特殊域名用 DOMAIN），去重、排序，并输出为 YAML 文件。
+
+## ShareLaTeX
+
+基于`sharelatex/sharelatex:latest`，构建包含完整 TeXLive 镜像的本地部署。
