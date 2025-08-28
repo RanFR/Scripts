@@ -6,6 +6,10 @@
 
 Clean workspace files, including **build**, **devel**, **logs** and **CMakeLists.txt** for symbolic link.
 
+### [gclone](docs/bash/gclone.md)
+
+克隆 GitHub 仓库，区分 HTTPS 和 SSH 协议。
+
 ### [tar_with_progress.bash](docs/bash/tar_with_progress.md)
 
 Compress and decompress to show progress by using the tar tool.

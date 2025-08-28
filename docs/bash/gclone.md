@@ -1,0 +1,41 @@
+# gclone
+
+## 用法
+
+可以直接输入`gclone`查看用法。
+
+```bash
+gclone
+```
+
+指定`-h`为使用 HTTPS 协议克隆仓库（默认，参数可忽略），指定`-s`为使用 SSH 协议克隆仓库（参数不可忽略）。
+
+### HTTPS（默认）
+
+举例说明，如果需要克隆用户**A**的**a**仓库，并使用 HTTPS 协议克隆。一般写法为：
+
+```bash
+git clone https://github.com/A/a.git
+```
+
+使用`gclone`工具，输入以下命令即可：
+
+```bash
+gclone -h A/a
+```
+
+以 HTTPS 协议克隆仓库为默认用法，`-h`参数可以忽略。
+
+### SSH
+
+举例说明，如果需要克隆用户**A**的**a**仓库，并使用 SSH 协议克隆。一般写法为：
+
+```bash
+git clone git@github.com:A/a
+```
+
+使用`gclone`工具，输入以下命令即可：
+
+```bash
+gclone -s A/a
+```

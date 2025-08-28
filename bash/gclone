@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# gclone: 快捷 git clone 工具
+
+usage() {
+    echo "用法: gclone [-h|-s] name/repo"
+    echo "  -h   使用 https (默认)"
+    echo "  -s   使用 ssh"
+    exit 1
+}
+
+# 参数检查
+if [ $# -lt 1 ]; then
+    usage
+fi
+
+option=""
+repo=""
+
+if [[ $1 == "-h" || $1 == "-s" ]]; then
+    option=$1
+    repo=$2
+else
+    option="-h"
+    repo=$1
+fi
+
+if [ -z "$repo" ]; then
+    usage
+fi
+
+case $option in
+    -h)
+        url="https://github.com/$repo"
+        ;;
+    -s)
+        url="git@github.com:$repo"
+        ;;
+    *)
+        usage
+        ;;
+esac
+
+echo "正在克隆: $url"
+
+git clone "$url"
