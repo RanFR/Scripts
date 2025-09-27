@@ -3,10 +3,22 @@
 # gclone: 快捷 git clone 工具
 
 usage() {
-    echo "用法: gclone [-h|-s] name/repo"
-    echo "  -h   使用 https (默认)"
-    echo "  -s   使用 ssh"
-    exit 1
+        cat <<EOF
+用法: gclone [-h|-s] owner/repo [dest]
+
+参数:
+    -h          使用 HTTPS (默认，可省略)
+    -s          使用 SSH
+    owner/repo  GitHub 仓库（不需要 .git 后缀）
+    dest        可选，克隆到的目标目录（等同 git clone <url> <dest>）
+
+示例:
+    gclone A/a              # 等同 git clone https://github.com/A/a.git
+    gclone -s A/a           # 等同 git clone git@github.com:A/a
+    gclone -s A/a TempDir   # 等同 git clone git@github.com:A/a TempDir
+    gclone A/a mydir        # 等同 git clone https://github.com/A/a.git mydir
+EOF
+        exit 1
 }
 
 # 参数检查
@@ -17,17 +29,23 @@ fi
 option=""
 repo=""
 
+dest=""
+
+# 解析参数
 if [[ $1 == "-h" || $1 == "-s" ]]; then
     option=$1
     repo=$2
+    dest=$3
 else
     option="-h"
     repo=$1
+    dest=$2
 fi
 
-if [ -z "$repo" ]; then
-    usage
-fi
+if [ -z "$repo" ]; then usage; fi
+
+# 去掉可能结尾的 .git 以统一处理
+repo=${repo%.git}
 
 case $option in
     -h)
@@ -41,6 +59,10 @@ case $option in
         ;;
 esac
 
-echo "正在克隆: $url"
-
-git clone "$url"
+if [ -n "$dest" ]; then
+    echo "正在克隆: $url -> $dest"
+    git clone "$url" "$dest"
+else
+    echo "正在克隆: $url"
+    git clone "$url"
+fi
