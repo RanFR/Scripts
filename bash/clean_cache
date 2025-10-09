@@ -1,0 +1,12 @@
+#!/bin/bash
+# 自动清理 ~/.cache 中超过 30 天未使用的文件
+
+CACHE_DIR="$HOME/.cache"
+
+echo "清理 $CACHE_DIR 中超过 30 天未访问的缓存..."
+
+# 使用 find 删除最近 30 天未访问的文件和文件夹
+find "$CACHE_DIR" -type f -atime +30 -print -delete
+find "$CACHE_DIR" -type d -empty -delete
+
+echo "清理完成！"
