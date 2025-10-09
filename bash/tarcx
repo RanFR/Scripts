@@ -1,0 +1,243 @@
+#!/bin/bash
+
+# ----------------------
+# Time formatting
+# ----------------------
+format_time() {
+  local seconds=$1
+  local hours=$((seconds / 3600))
+  local minutes=$(((seconds % 3600) / 60))
+  local secs=$((seconds % 60))
+
+  if (( hours > 0 )); then
+    printf "%02d:%02d:%02d" "$hours" "$minutes" "$secs"
+  else
+    printf "%02d:%02d" "$minutes" "$secs"
+  fi
+}
+
+# ----------------------
+# Human-readable size
+# ----------------------
+format_bytes() {
+  local bytes=$1
+  local kib=$((1024))
+  local mib=$((1024 * 1024))
+  local gib=$((1024 * 1024 * 1024))
+  local tib=$((1024 * 1024 * 1024 * 1024))
+
+  if (( bytes >= tib )); then
+    printf "%.2f TB" "$(echo "$bytes / $tib" | bc -l)"
+  elif (( bytes >= gib )); then
+    printf "%.2f GB" "$(echo "$bytes / $gib" | bc -l)"
+  elif (( bytes >= mib )); then
+    printf "%.2f MB" "$(echo "$bytes / $mib" | bc -l)"
+  elif (( bytes >= kib )); then
+    printf "%.2f KB" "$(echo "$bytes / $kib" | bc -l)"
+  else
+    printf "%d bytes" "$bytes"
+  fi
+}
+
+# ----------------------
+# Compression type
+# ----------------------
+detect_compression() {
+  case "$1" in
+    *.tar) echo "none" ;;
+    *.tar.xz) echo "xz" ;;
+    *.tar.gz) echo "gz" ;;
+    *) echo "unknown" ;;
+  esac
+}
+
+# ----------------------
+# Archive Creation
+# ----------------------
+create_archive() {
+  OUTPUT_FILE="$1"
+  shift
+  INPUTS=("$@")
+
+  COMP_TYPE=$(detect_compression "$OUTPUT_FILE")
+  if [ "$COMP_TYPE" == "unknown" ]; then
+    echo "❌ 不支持的输出文件扩展名."
+    exit 2
+  fi
+
+  for item in "${INPUTS[@]}"; do
+    if [ ! -e "$item" ]; then
+      echo "❌ 错误：'$item' 不存在."
+      exit 3
+    fi
+  done
+
+  echo "📦 创建归档: $OUTPUT_FILE"
+  echo "📁 包含: ${INPUTS[*]}"
+  echo "⚙️ 压缩方式: $COMP_TYPE"
+  echo "⏳ 正在创建归档..."
+
+  # 开始计时
+  START_TIME=$(date +%s)
+
+  # 启动后台进程显示运行时间
+  (
+    while kill -0 $$ 2>/dev/null; do
+      CURRENT_TIME=$(date +%s)
+      ELAPSED=$((CURRENT_TIME - START_TIME))
+      FORMATTED_TIME=$(format_time "$ELAPSED")
+      printf "\r⏱️  运行时间: %s" "$FORMATTED_TIME"
+      sleep 1
+    done
+  ) &
+  TIMER_PID=$!
+
+  case "$COMP_TYPE" in
+    none)
+      tar -cf "$OUTPUT_FILE" "${INPUTS[@]}"
+      ;;
+    xz)
+      tar -cf - "${INPUTS[@]}" | xz -c > "$OUTPUT_FILE"
+      ;;
+    gz)
+      tar -cf - "${INPUTS[@]}" | gzip > "$OUTPUT_FILE"
+      ;;
+  esac
+
+  # 停止计时器
+  kill $TIMER_PID 2>/dev/null
+  wait $TIMER_PID 2>/dev/null
+
+  # 计算最终时间
+  END_TIME=$(date +%s)
+  TOTAL_TIME=$((END_TIME - START_TIME))
+  FORMATTED_TOTAL=$(format_time "$TOTAL_TIME")
+  printf "\r⏱️  总用时: %s\n" "$FORMATTED_TOTAL"
+
+  if [ $? -eq 0 ]; then
+    echo "✅ 归档创建成功: $OUTPUT_FILE"
+  else
+    echo "❌ 归档创建失败."
+  fi
+}
+
+# ----------------------
+# Archive Extraction
+# ----------------------
+extract_archive() {
+  ARCHIVE="$1"
+  DEST="${2:-.}"
+
+  COMP_TYPE=$(detect_compression "$ARCHIVE")
+  if [ "$COMP_TYPE" == "unknown" ]; then
+    echo "❌ 不支持的归档扩展名."
+    exit 2
+  fi
+
+  if [ ! -f "$ARCHIVE" ]; then
+    echo "❌ 归档 '$ARCHIVE' 未找到."
+    exit 3
+  fi
+
+  echo "📂 正在提取 '$ARCHIVE' → '$DEST'"
+  echo "⚙️ 压缩方式: $COMP_TYPE"
+  echo "⏳ 正在提取归档..."
+  mkdir -p "$DEST"
+
+  # 开始计时
+  START_TIME=$(date +%s)
+
+  # 启动后台进程显示运行时间
+  (
+    while kill -0 $$ 2>/dev/null; do
+      CURRENT_TIME=$(date +%s)
+      ELAPSED=$((CURRENT_TIME - START_TIME))
+      FORMATTED_TIME=$(format_time "$ELAPSED")
+      printf "\r⏱️  运行时间: %s" "$FORMATTED_TIME"
+      sleep 1
+    done
+  ) &
+  TIMER_PID=$!
+
+  case "$COMP_TYPE" in
+    none)
+      tar -xf "$ARCHIVE" -C "$DEST"
+      ;;
+    xz)
+      xz -d -c "$ARCHIVE" | tar -x -C "$DEST"
+      ;;
+    gz)
+      gzip -d -c "$ARCHIVE" | tar -x -C "$DEST"
+      ;;
+  esac
+
+  # 停止计时器
+  kill $TIMER_PID 2>/dev/null
+  wait $TIMER_PID 2>/dev/null
+
+  # 计算最终时间
+  END_TIME=$(date +%s)
+  TOTAL_TIME=$((END_TIME - START_TIME))
+  FORMATTED_TOTAL=$(format_time "$TOTAL_TIME")
+  printf "\r⏱️  总用时: %s\n" "$FORMATTED_TOTAL"
+
+  if [ $? -eq 0 ]; then
+    echo "✅ 提取完成成功."
+  else
+    echo "❌ 提取失败."
+  fi
+}
+
+# ----------------------
+# Usage info
+# ----------------------
+usage() {
+  echo "使用方法:"
+  echo "  $0 -c <输出文件.tar{.xz,gz}> <文件...>        # 创建归档"
+  echo "  $0 -x <归档文件.tar{.xz,gz}> [输出目录]     # 提取归档"
+  exit 1
+}
+
+# ----------------------
+# Entry point with -c/-x options
+# ----------------------
+if [ $# -lt 2 ]; then
+  usage
+fi
+
+MODE=""
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -c)
+      MODE="create"
+      shift
+      ;;
+    -x)
+      MODE="extract"
+      shift
+      ;;
+    -*)
+      echo "未知选项: $1"
+      usage
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$MODE" ]; then
+  echo "❌ 错误：必须指定 -c (创建) 或 -x (提取)"
+  usage
+fi
+
+if [ "$MODE" = "create" ]; then
+  create_archive "${POSITIONAL_ARGS[@]}"
+elif [ "$MODE" = "extract" ]; then
+  extract_archive "${POSITIONAL_ARGS[@]}"
+else
+  usage
+fi
