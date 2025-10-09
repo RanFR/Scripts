@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# 如果没有提供清理的文件夹，默认清理当前文件夹
+root_dir="${1:-.}"
+dry_run=false
+
+# 如果提供了 -n 选项，则进入干运行模式
+if [[ "$1" == "-n" ]]; then
+    dry_run=true
+    root_dir="${2:-.}"  # 第二个参数是目录，没有提供则默认当前目录
+fi
+
+echo "开始清理: $root_dir"
+if $dry_run; then
+    echo "[干运行模式] 不会实际删除任何文件。"
+fi
+
+# 安全搜索，排除 .git 目录
+safe_find() {
+    find "$root_dir" \( -type d -name ".git" \) -prune -o "$@" -print
+}
+
+# 删除 build、devel 和 logs 目录
+echo "搜索 build、devel 和 logs 目录..."
+safe_find -type d \( -name "build" -o -name "devel" -o -name "logs" \) | while read -r dir; do
+    echo "找到目录: $dir"
+    if ! $dry_run; then
+        rm -rf "$dir"
+        echo "已删除: $dir"
+    fi
+done
+
+# 删除 .catkin_workspace 文件
+echo "搜索 .catkin_workspace 文件..."
+safe_find -type f -name ".catkin_workspace" | while read -r file; do
+    echo "找到文件: $file"
+    if ! $dry_run; then
+        rm -f "$file"
+        echo "已删除: $file"
+    fi
+done
+
+# 删除符号链接 CMakeLists.txt
+echo "搜索符号链接 CMakeLists.txt..."
+safe_find -type l -name "CMakeLists.txt" | while read -r link; do
+    echo "找到符号链接: $link"
+    if ! $dry_run; then
+        rm -f "$link"
+        echo "已删除: $link"
+    fi
+done
+
+echo "清理完成!"
