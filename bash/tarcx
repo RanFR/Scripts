@@ -92,6 +92,9 @@ create_archive() {
   ) &
   TIMER_PID=$!
 
+  # 等待一小段时间让计时器启动
+  sleep 0.1
+
   case "$COMP_TYPE" in
     none)
       tar -cf "$OUTPUT_FILE" "${INPUTS[@]}"
@@ -112,7 +115,7 @@ create_archive() {
   END_TIME=$(date +%s)
   TOTAL_TIME=$((END_TIME - START_TIME))
   FORMATTED_TOTAL=$(format_time "$TOTAL_TIME")
-  printf "\r⏱️  总用时: %s\n" "$FORMATTED_TOTAL"
+  printf "\r\033[K⏱️  总用时: %s\n" "$FORMATTED_TOTAL"
 
   if [ $? -eq 0 ]; then
     echo "✅ 归档创建成功: $OUTPUT_FILE"
@@ -159,6 +162,9 @@ extract_archive() {
   ) &
   TIMER_PID=$!
 
+  # 等待一小段时间让计时器启动
+  sleep 0.1
+
   case "$COMP_TYPE" in
     none)
       tar -xf "$ARCHIVE" -C "$DEST"
@@ -179,7 +185,7 @@ extract_archive() {
   END_TIME=$(date +%s)
   TOTAL_TIME=$((END_TIME - START_TIME))
   FORMATTED_TOTAL=$(format_time "$TOTAL_TIME")
-  printf "\r⏱️  总用时: %s\n" "$FORMATTED_TOTAL"
+  printf "\r\033[K⏱️  总用时: %s\n" "$FORMATTED_TOTAL"
 
   if [ $? -eq 0 ]; then
     echo "✅ 提取完成成功."
