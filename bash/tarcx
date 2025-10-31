@@ -47,6 +47,7 @@ detect_compression() {
     *.tar) echo "none" ;;
     *.tar.xz) echo "xz" ;;
     *.tar.gz) echo "gz" ;;
+    *.tgz) echo "gz" ;;
     *) echo "unknown" ;;
   esac
 }
@@ -199,8 +200,8 @@ extract_archive() {
 # ----------------------
 usage() {
   echo "使用方法:"
-  echo "  $0 -c <输出文件.tar{.xz,gz}> <文件...>        # 创建归档"
-  echo "  $0 -x <归档文件.tar{.xz,gz}> [输出目录]     # 提取归档"
+  echo "  $0 -c <输出文件.tar{.xz,.gz,.tgz}> <文件...>        # 创建归档"
+  echo "  $0 -x <归档文件.tar{.xz,.gz,.tgz}> [输出目录]     # 提取归档"
   exit 1
 }
 
