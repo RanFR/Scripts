@@ -2,9 +2,9 @@
 
 ## bash
 
-### [clean_workspace.bash](docs/bash/clean_workspace.md)
+### [rcw.bash](docs/bash/rcw.md)
 
-Clean workspace files, including **build**, **devel**, **logs** and **CMakeLists.txt** for symbolic link.
+ROS Clean Workspace(rcw), clean workspace files including **build**, **devel**, **logs** and **CMakeLists.txt** for symbolic link.
 
 ### [gclone](docs/bash/gclone.md)
 
